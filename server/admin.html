@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پنل مدیریت نوای آسمانی</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#091320;color:#f2efe6;font-family:Tahoma,Arial,sans-serif}
+header{padding:24px;background:#122536;border-bottom:2px solid #e0bb79}h1{margin:0;font-size:25px}header p{color:#98adb9;margin:8px 0}
+main{max-width:1130px;margin:20px auto;padding:12px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:780px){.layout{grid-template-columns:1fr}}
+section{background:#122536;border-radius:20px;padding:20px}label{display:block;color:#e0bb79;font-size:12px;margin:12px 0 5px}
+input,textarea,select{width:100%;background:#091320;color:#f2efe6;border:1px solid #365061;border-radius:9px;padding:10px;font:inherit}
+textarea{min-height:82px}button{background:#28c4b2;color:#091320;border:0;border-radius:10px;padding:10px 15px;font-weight:bold;cursor:pointer;margin:5px 2px}
+button.warn{background:#e0bb79}.item{border-bottom:1px solid #34505c;padding:10px 0;font-size:13px}small{color:#98adb9}#message{color:#e0bb79;white-space:pre-wrap}a{color:#28c4b2}
+</style></head><body><header><h1>پنل مدیریت | نوای آسمانی</h1><p>ورود آثار دارای مجوز، بازبینی و انتشار در کاتالوگ</p></header>
+<main><section style="margin-bottom:16px"><label>کلید مدیر (فقط در حافظه همین صفحه)</label><input id="token" type="password" autocomplete="off" placeholder="NAVA_ADMIN_TOKEN"><button onclick="load()">بارگذاری فهرست</button><button onclick="importSeed()" class="warn">ورود نمونه‌های دارای مجوز باز</button><p id="message"></p></section>
+<div class="layout"><section><h2>ثبت یا ویرایش اثر</h2><form id="f"><label>شناسه لاتین یکتا</label><input name="id" required pattern="[A-Za-z0-9_-]+"><label>نام اثر</label><input name="title" required>
+<label>هنرمند / قاری</label><input name="artist" required><label>دسته</label><select name="category"><option>مداحی</option><option>روضه</option><option>سخنرانی</option><option>ادعیه</option><option>مناجات</option><option>قرآن</option></select>
+<label>لینک مستقیم صوت (HTTPS)</label><input name="streamUrl" type="url"><label>صفحه منبع (HTTPS)</label><input name="sourceUrl" type="url"><label>نام منبع</label><input name="sourceName"><label>نوع مجوز و نام صاحب اثر</label><input name="license"><label>نشانی مدرک مجوز (HTTPS)</label><input name="rightsProofUrl" type="url">
+<label>توضیحات</label><textarea name="description"></textarea><label><input name="downloadAllowed" type="checkbox" style="width:auto"> اجازه دانلود داده شده است</label>
+<button type="submit">ذخیره به‌صورت پیش‌نویس</button></form></section>
+<section><h2>آثار ثبت‌شده</h2><div id="items">برای مشاهده، کلید مدیر را وارد کنید.</div></section></div></main>
+<script>
+const msg = s => document.getElementById('message').textContent=s;
+async function api(path,method='GET',payload){let res=await fetch(path,{method,headers:{'Authorization':'Bearer '+document.getElementById('token').value,'Content-Type':'application/json'},body:payload?JSON.stringify(payload):undefined});if(!res.ok)throw Error(res.status+': '+await res.text());return res.json()}
+async function load(){try {let rows=await api('/admin/items');let box=document.getElementById('items');box.replaceChildren();rows.forEach(r=>{let d=document.createElement('div');d.className='item';let title=document.createElement('strong');title.textContent=r.item.title;d.append(title,document.createElement('br'));let label=document.createElement('small');label.textContent=r.item.category+' · '+r.status+' · '+r.item.id;d.append(label,document.createElement('br'));const edit=document.createElement('button');edit.textContent='ویرایش';edit.onclick=()=>{for(const [k,v] of Object.entries(r.item)){let el=document.querySelector('[name="'+k+'"]');if(el){if(el.type==='checkbox')el.checked=v;else el.value=v}}window.scrollTo({top:0,behavior:'smooth'})};const pub=document.createElement('button');pub.textContent=r.status==='published'?'بازگرداندن به پیش‌نویس':'انتشار';pub.className='warn';pub.onclick=async()=>{try{await api('/admin/items/'+encodeURIComponent(r.item.id)+'/'+(r.status==='published'?'unpublish':'publish'),'POST');await load()}catch(e){msg(e.message)}};d.append(edit,pub);box.append(d)});msg(rows.length+' مورد خوانده شد.')}catch(e){msg(e.message)}}
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();let fd=new FormData(e.target),entry=Object.fromEntries(fd.entries());entry.downloadAllowed=fd.has('downloadAllowed');try{await api('/admin/items/'+encodeURIComponent(entry.id),'PUT',entry);msg('پیش‌نویس ذخیره شد؛ پس از تکمیل مجوز دکمه انتشار را بزنید.');await load()}catch(e){msg(e.message)}};
+async function importSeed(){try{await api('/admin/import-seed','POST');await load()}catch(e){msg(e.message)}}
+</script></body></html>

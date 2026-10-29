@@ -1,0 +1,16 @@
+services:
+  catalog:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    environment:
+      NAVA_ADMIN_TOKEN: ${NAVA_ADMIN_TOKEN:?Set a random token of at least 32 characters}
+      NAVA_CORS_ORIGINS: ${NAVA_CORS_ORIGINS:-}
+      NAVA_DB: /data/catalog.sqlite3
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - catalog_data:/data
+volumes:
+  catalog_data:
