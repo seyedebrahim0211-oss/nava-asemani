@@ -24,7 +24,9 @@ data class AudioItem(
     val license: String = "",
     val downloadAllowed: Boolean = false,
     val duration: String = "",
-    val tags: String = ""
+    val tags: String = "",
+    val isFeatured: Boolean = false,
+    val isPopular: Boolean = false
 ) {
     val playable get() = streamUrl.startsWith("https://")
 }
@@ -53,7 +55,9 @@ object Catalog {
                     sourceUrl = sourceUrl.takeIf { it.startsWith("https://") } ?: "",
                     sourceName = o.optString("sourceName"), license = o.optString("license"),
                     downloadAllowed = o.optBoolean("downloadAllowed", false) && streamUrl.startsWith("https://"),
-                    duration = o.optString("duration"), tags = o.optString("tags")
+                    duration = o.optString("duration"), tags = o.optString("tags"),
+                    isFeatured = o.optBoolean("isFeatured", false),
+                    isPopular = o.optBoolean("isPopular", false)
                 ))
             }
         }
