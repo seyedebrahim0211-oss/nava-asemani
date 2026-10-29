@@ -78,6 +78,7 @@ private fun NavaApp() {
     var favorites by remember { mutableStateOf(prefs.favorites()) }
     var tab by remember { mutableStateOf(Tab.HOME) }
     var category by remember { mutableStateOf<String?>(null) }
+    var occasionFilter by remember { mutableStateOf<String?>(null) }
     var selected by remember { mutableStateOf<AudioItem?>(null) }
     var playlistTarget by remember { mutableStateOf<AudioItem?>(null) }
     var playlistName by remember { mutableStateOf("") }
@@ -214,13 +215,16 @@ private fun NavaApp() {
             ) { padding ->
                 Box(Modifier.padding(padding).fillMaxSize().widthIn(max = 1160.dp)) {
                     when (tab) {
-                        Tab.HOME -> HomeScreen(items, refreshing,
+                        Tab.HOME -> GlassHomeScreen(items, refreshing,
                             onRefresh = ::refresh,
-                            onCategory = { category = it; tab = Tab.EXPLORE },
+                            onSearch = { category = null; occasionFilter = null; tab = Tab.EXPLORE },
+                            onCategory = { category = it; occasionFilter = null; tab = Tab.EXPLORE },
+                            onOccasion = { occasionFilter = it; category = null; tab = Tab.EXPLORE },
                             onItem = { selected = it }, onPlay = ::play,
-                            onFavorite = { favorites = prefs.toggle(it.id) }, favorites = favorites)
-                        Tab.EXPLORE -> ExploreScreen(items, category,
-                            onCategory = { category = it }, onItem = { selected = it },
+                            onFavorite = { favorites = prefs.toggle(it.id) }, favorites = favorites,
+                            currentItem = currentItem)
+                        Tab.EXPLORE -> ExploreScreen(items, category, occasionFilter,
+                            onCategory = { category = it; occasionFilter = null }, onItem = { selected = it },
                             onPlay = ::play, favorites = favorites,
                             onFavorite = { favorites = prefs.toggle(it.id) })
                         Tab.DOWNLOADS -> DownloadsScreen(items, downloads, listVersion,
@@ -412,14 +416,15 @@ private fun HomeScreen(items: List<AudioItem>, refreshing: Boolean,
 }
 
 @Composable
-private fun ExploreScreen(items: List<AudioItem>, preselected: String?,
+private fun ExploreScreen(items: List<AudioItem>, preselected: String?, occasionFilter: String?,
                           onCategory: (String?) -> Unit, onItem: (AudioItem) -> Unit,
                           onPlay: (AudioItem) -> Unit, favorites: Set<String>,
                           onFavorite: (AudioItem) -> Unit) {
     var query by remember { mutableStateOf("") }
-    val filtered = remember(query, preselected, items) {
+    val filtered = remember(query, preselected, occasionFilter, items) {
         items.filter { entry ->
             (preselected == null || entry.category == preselected) &&
+            (occasionFilter == null || entry.occasion.contains(occasionFilter, ignoreCase = true) || entry.tags.contains(occasionFilter, ignoreCase = true)) &&
             (query.isBlank() || listOf(entry.title, entry.artist, entry.occasion, entry.description, entry.tags, entry.category)
                 .any { it.contains(query.trim(), ignoreCase = true) })
         }
