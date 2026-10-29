@@ -74,3 +74,38 @@ jobs:
 
       - name: Run API tests
         run: python -m pytest -q server/tests
+
+  release:
+    name: Publish APK to Releases
+    needs: [android, api-tests]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the tested APK
+        uses: actions/download-artifact@v4
+        with:
+          name: nava-asemani-debug-apk
+          path: release
+
+      - name: Prepare APK asset
+        run: |
+          test -s release/app-debug.apk
+          mv release/app-debug.apk "release/Nava-Asemani-v0.1-build-${{ github.run_number }}.apk"
+
+      - name: Publish GitHub prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0-build.${{ github.run_number }}
+          name: Nava Asemani v0.1 - test build ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          body: |
+            نسخه آزمایشی نوای آسمانی برای Android 10 و بالاتر.
+            این فایل APK از شاخه main و بعد از موفقیت ساخت اندروید و تست‌های API ایجاد شده است.
+            توجه: این نسخه Debug است و هنوز برای انتشار رسمی در فروشگاه‌ها امضا و آزمون نهایی نشده است.
+            فایل APK را از بخش Assets این صفحه دانلود کنید.
+          files: release/*.apk
