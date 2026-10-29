@@ -230,7 +230,7 @@ private fun GlassSectionHeader(title: String, caption: String, onClick: () -> Un
         }
         TextButton(onClick = onClick) {
             Text("مشاهده همه", color = Jade, fontSize = 11.sp)
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null, tint = Jade, modifier = Modifier.size(17.dp))
+            Icon(Icons.Filled.KeyboardArrowLeft, null, tint = Jade, modifier = Modifier.size(17.dp))
         }
     }
 }
