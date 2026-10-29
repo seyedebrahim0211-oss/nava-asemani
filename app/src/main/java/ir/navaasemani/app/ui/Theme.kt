@@ -10,13 +10,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Typography
 import androidx.compose.ui.unit.sp
 
-val Ink = Color(0xFF091320)
-val Panel = Color(0xFF122536)
-val PanelLight = Color(0xFF1B3543)
-val Jade = Color(0xFF28C4B2)
-val Gold = Color(0xFFE0BB79)
-val Cream = Color(0xFFF2EFE6)
-val Muted = Color(0xFF98ADB9)
+val Ink = Color(0xFF08131F)
+val Panel = Color(0xFF142B3B)
+val PanelLight = Color(0xFF213F4D)
+val Jade = Color(0xFF27D1C3)
+val Gold = Color(0xFFE3BC76)
+val Cream = Color(0xFFF4F1E8)
+val Muted = Color(0xFFA6B7C5)
 
 private val palette = darkColorScheme(
     primary = Jade, onPrimary = Ink, secondary = Gold, onSecondary = Ink,
