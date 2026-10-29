@@ -89,6 +89,7 @@ private fun NavaApp() {
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
     var refreshing by remember { mutableStateOf(false) }
+    var expandedPlayer by remember { mutableStateOf(false) }
 
     DisposableEffect(context) {
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
@@ -198,7 +199,7 @@ private fun NavaApp() {
                         if (currentItem != null) MiniPlayer(
                             currentItem, isPlaying, position, duration,
                             onToggle = { if (isPlaying) player?.pause() else player?.play() },
-                            onExpand = { selected = currentItem }
+                            onExpand = { expandedPlayer = true }
                         )
                         if (!wide) NavigationBar(containerColor = Panel, tonalElevation = 0.dp) {
                             Tab.entries.forEach { entry ->
@@ -259,6 +260,19 @@ private fun NavaApp() {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.sourceUrl)))
                     }
                 })
+        }
+    }
+    if (expandedPlayer && currentItem != null) {
+        ModalBottomSheet(onDismissRequest = { expandedPlayer = false }, containerColor = Ink,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Gold) }) {
+            NavaFullPlayer(item = currentItem, controller = player, position = position, duration = duration,
+                favorite = currentItem.id in favorites,
+                onFavorite = { favorites = prefs.toggle(currentItem.id) },
+                onDownload = { download(currentItem) },
+                onSource = {
+                    if (currentItem.sourceUrl.isNotBlank()) context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse(currentItem.sourceUrl)))
+                }, onClose = { expandedPlayer = false })
         }
     }
     if (playlistTarget != null) {
@@ -580,7 +594,9 @@ private fun DetailSheet(item: AudioItem, favorite: Boolean, onPlay: () -> Unit, 
         Text(item.title, style = MaterialTheme.typography.titleLarge, lineHeight = 33.sp)
         Text(item.artist + if (item.occasion.isNotBlank()) " • ${item.occasion}" else "", color = Muted)
         if (item.description.isNotBlank()) Text(item.description, color = Cream, fontSize = 13.sp, lineHeight = 24.sp)
-        if (!item.playable) Text("این مورد صرفاً نمایشی است و فایل صوتی برای پخش ندارد.", color = Gold, fontSize = 12.sp)
+        if (!item.playable) Text(if (item.sourceUrl.isNotBlank())
+            "این اثر در منبع اصلی موجود است؛ مجوز پخش درون‌برنامه‌ای ثبت نشده است." else
+            "هنوز فایل صوتی مجاز برای این مورد ثبت نشده است.", color = Gold, fontSize = 12.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Button(onClick = onPlay, enabled = item.playable || item.sourceUrl.isNotBlank(), modifier = Modifier.weight(1f)) {
                 Icon(if (item.playable) Icons.Default.PlayArrow else Icons.Default.OpenInNew, null); Spacer(Modifier.width(5.dp)); Text(if (item.playable) "پخش" else "صفحه منبع")
