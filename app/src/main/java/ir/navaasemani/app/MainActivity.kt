@@ -66,6 +66,7 @@ private enum class Tab(val label: String) {
     HOME("خانه"), EXPLORE("جست‌وجو"), DOWNLOADS("دانلودها"), LIBRARY("کتابخانه"), ABOUT("درباره ما")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NavaApp() {
     val context = LocalContext.current
