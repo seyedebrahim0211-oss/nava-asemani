@@ -125,13 +125,19 @@ private fun NavaApp() {
     }
     LaunchedEffect(Unit) {
         refreshing = BuildConfig.CATALOG_URL.startsWith("https://")
-        Catalog.refresh()?.let { remote -> if (remote.isNotEmpty()) items = remote }
+        val remote = Catalog.refresh()
+        val discovered = SourceDiscovery.load(context)
+        items = (Catalog.bundled(context) + (remote ?: emptyList()) + discovered).distinctBy { it.id }
         refreshing = false
     }
 
     fun play(item: AudioItem) {
         val controller = player
         if (!item.playable) {
+            if (item.sourceUrl.startsWith("https://")) {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.sourceUrl)))
+                return
+            }
             scope.launch { snackbar.showSnackbar("برای این نمونه هنوز فایل صوتی مجاز ثبت نشده است") }
             return
         }
@@ -163,10 +169,9 @@ private fun NavaApp() {
         scope.launch {
             refreshing = true
             val remote = Catalog.refresh()
-            if (!remote.isNullOrEmpty()) {
-                items = remote
-                snackbar.showSnackbar("فهرست آثار به‌روزرسانی شد")
-            } else snackbar.showSnackbar("فهرست آنلاین در دسترس نیست؛ نسخه محلی نمایش داده می‌شود")
+            val discovered = SourceDiscovery.load(context, force = true)
+            items = (Catalog.bundled(context) + (remote ?: emptyList()) + discovered).distinctBy { it.id }
+            snackbar.showSnackbar(if (discovered.isNotEmpty()) "اطلاعات منابع با ذکر منبع به‌روز شد" else "منابع در دسترس نیستند؛ فهرست ذخیره‌شده نمایش داده می‌شود")
             refreshing = false
         }
     }
@@ -577,8 +582,8 @@ private fun DetailSheet(item: AudioItem, favorite: Boolean, onPlay: () -> Unit, 
         if (item.description.isNotBlank()) Text(item.description, color = Cream, fontSize = 13.sp, lineHeight = 24.sp)
         if (!item.playable) Text("این مورد صرفاً نمایشی است و فایل صوتی برای پخش ندارد.", color = Gold, fontSize = 12.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = onPlay, enabled = item.playable, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(5.dp)); Text("پخش")
+            Button(onClick = onPlay, enabled = item.playable || item.sourceUrl.isNotBlank(), modifier = Modifier.weight(1f)) {
+                Icon(if (item.playable) Icons.Default.PlayArrow else Icons.Default.OpenInNew, null); Spacer(Modifier.width(5.dp)); Text(if (item.playable) "پخش" else "صفحه منبع")
             }
             FilledTonalButton(onClick = onDownload, enabled = item.downloadAllowed, modifier = Modifier.weight(1f)) {
                 Icon(Icons.Default.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.width(5.dp)); Text("دانلود")
