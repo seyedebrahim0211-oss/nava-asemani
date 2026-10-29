@@ -45,6 +45,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
     implementation("androidx.media3:media3-common:1.11.1")
+    implementation("org.jsoup:jsoup:1.21.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
