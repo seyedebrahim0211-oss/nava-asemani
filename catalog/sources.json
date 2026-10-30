@@ -1,0 +1,15 @@
+{
+  "_راهنما": "هر منبع رسمی یک خط است. type: rss (پادکست، فید سایت وردپرسی، فید یوتیوب یا آپارات). اگر فید فایل صوتی (enclosure) داشته باشد اثر قابل پخش می‌شود؛ downloadAllowed را فقط وقتی true کنید که خود ناشر اجازه دانلود داده است. نمونه را کپی کنید، آدرس واقعی بگذارید و enabled را true کنید.",
+  "sources": [
+    {
+      "enabled": false,
+      "maddahId": "meysam-motiee",
+      "type": "rss",
+      "url": "https://example.org/feed-of-official-site.xml",
+      "sourceName": "پایگاه رسمی میثم مطیعی",
+      "category": "مداحی",
+      "downloadAllowed": false,
+      "license": "پخش با ذکر منبع از فید رسمی ناشر"
+    }
+  ]
+}
