@@ -71,7 +71,8 @@ android {
     // پوشه catalog/ مخزن مستقیم داخل APK قرار می‌گیرد تا اپ بدون اینترنت هم کار کند
     sourceSets {
         getByName("main") {
-            assets.srcDir(rootProject.file("catalog"))
+            // فقط پوشه catalog/ (فایل قدیمی src/main/assets نادیده گرفته می‌شود)
+            assets.setSrcDirs(listOf(rootProject.file("catalog")))
         }
     }
 
