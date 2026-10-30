@@ -34,11 +34,16 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: نصب Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: نصب پلتفرم اندروید ۳۵
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: آماده‌سازی Android SDK (نصب‌شده روی سرور گیت‌هاب)
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          SDKM="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(ls -d "$SDK"/cmdline-tools/*/bin/sdkmanager | tail -1)"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools" > /dev/null
+          ls "$SDK/platforms"
 
       - name: آماده‌سازی Gradle
         uses: gradle/actions/setup-gradle@v4
