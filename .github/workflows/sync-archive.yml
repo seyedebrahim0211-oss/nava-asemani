@@ -1,0 +1,39 @@
+name: آرشیو زنده (به‌روزرسانی خودکار از منابع رسمی)
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-archive
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: خواندن فیدهای رسمی و افزودن آثار تازه
+        run: python3 scripts/sync_feeds.py
+
+      - name: بررسی سلامت کاتالوگ
+        run: python3 scripts/validate_catalog.py
+
+      - name: ذخیره تغییرات
+        run: |
+          if git diff --quiet -- catalog/catalog.json; then
+            echo "اثر تازه‌ای پیدا نشد"
+            exit 0
+          fi
+          git config user.name "nava-archive-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog/catalog.json
+          git commit -m "آرشیو: افزودن آثار تازه از منابع رسمی"
+          git push
+          # پاک‌کردن کش jsDelivr تا اپ‌ها زودتر نسخه تازه را ببینند
+          curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/catalog/catalog.json" || true
